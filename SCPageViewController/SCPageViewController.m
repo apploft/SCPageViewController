@@ -142,7 +142,20 @@
 	[super viewWillAppear:animated];
 	
 	self.isViewVisible = YES;
-	[self _tilePages];
+	
+    /* PAM-1463: Before iOS 11 when 'viewWillAppear' was called the view frame were still zero while from
+        iOS 11 on the frame also in 'viewWillAppear' already have a frame which leads to a wrong page index
+        being calculated because the scroll view content offset will first be set when
+        '[self setLayouter:self.layouter andFocusOnIndex:self.currentPage animated:NO completion:nil];' has
+        been called.
+     */
+    NSOperatingSystemVersion osVersion = [NSProcessInfo processInfo].operatingSystemVersion;
+    
+    if (osVersion.majorVersion < 11) {
+        [self _tilePages];
+    } else {
+        [self setLayouter:self.layouter andFocusOnIndex:self.currentPage animated:NO completion:nil];
+    }
 }
 
 - (void)viewDidDisappear:(BOOL)animated
